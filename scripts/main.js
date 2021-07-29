@@ -32,6 +32,26 @@ const throttle = (func, limit) => {
 
 note_.addEventListener('input', throttle(handleInput, 500))
 
+/*
+ * TODO:
+ * support Escape to blur() text area
+ * insert spaces instead - https://jsfiddle.net/joaocolombo/wWk4x/
+ */
+
+const handleKeydown = event => {
+  if (event.key == 'Tab') {
+    event.preventDefault()
+
+    el = event.target
+    const start = el.selectionStart
+    el.value = el.value.substring(0, el.selectionStart) 
+      + '\t' + el.value.substring(el.selectionEnd)
+    el.selectionEnd = start + 1
+  }
+}
+
+note_.addEventListener('keydown', handleKeydown)
+
 // init - run on start
 ;(_ => {
   restore()
