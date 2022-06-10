@@ -81,3 +81,11 @@ note_.addEventListener('keydown', handleKeydown)
 ;(_ => {
   restore()
 })()
+
+window.addEventListener("load", () => {
+  if('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js').then(() => { 
+      log("Service Worker Registered") 
+    })
+  }
+})
