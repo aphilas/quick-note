@@ -1,36 +1,61 @@
+const ENABLE_LOG = false
+const THROTTLE_DELAY = 100
 
 const note_ = document.querySelector('.note')
-
 const storage = window.localStorage
+
+const log = (message) => {
+  if (ENABLE_LOG) {
+    console.log('FastNote: ', message)
+  }
+}
 
 const restore = _ => {
   const saved = storage.getItem('note')
-  if (note_ && saved) note_.value = saved
+
+  if (note_ && typeof saved == 'string') {
+    note_.value = saved
+    log('Restored or synced')
+  }
 }
 
 const save = text => {
   storage.setItem('note', text)
-  console.log('Saved')
 }
 
 const handleInput = event => {
   save(event.target.value)
 }
 
+// Throttle and run at the end
+// See https://towardsdev.com/debouncing-and-throttling-in-javascript-8862efe2b563
 const throttle = (func, limit) => {
-  let inThrottle
-  return function() {
-    const args = arguments
+  let lastFunc
+  let lastRan
+
+  return function(...args) {
     const context = this
-    if (!inThrottle) {
+
+    if (!lastRan) {
       func.apply(context, args)
-      inThrottle = true
-      setTimeout(() => inThrottle = false, limit)
+      lastRan = Date.now()
+    } else {
+      clearTimeout(lastFunc);
+      lastFunc = setTimeout(function() {
+          if ((Date.now() - lastRan) >= limit) {
+            func.apply(context, args)
+            lastRan = Date.now()
+          }
+       }, limit - (Date.now() - lastRan))
     }
   }
 }
 
-note_.addEventListener('input', throttle(handleInput, 500))
+
+note_.addEventListener('input', throttle(handleInput, THROTTLE_DELAY))
+
+// Detect changes from another tab
+window.addEventListener('storage', throttle(restore, THROTTLE_DELAY))
 
 /*
  * TODO:
